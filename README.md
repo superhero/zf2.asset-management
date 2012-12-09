@@ -1,5 +1,6 @@
 # Asset Management
-*PHP - Zend Framework 2 - Module*<br>
+*PHP - Zend Framework 2 - Module*
+
 <i>Version: <b>Alpha</b></i>
 
 ## What's this?
@@ -29,7 +30,7 @@ folder of your project
 can be found. <i><b>Tip:</b> Have a look at the 'Module' class where the
 Reference has been made but out commented</i>
 3. Get external filters that you wish to use.<br>
-*List of links..*
+**List of links will follow..**
 
 ## Usage
 **Description will follow when project reaches RC.**
