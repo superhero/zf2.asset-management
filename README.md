@@ -20,8 +20,8 @@ include references.
 Yes, you can also combine multiple files into one single output.
 
 ## How it works
-The module is only an integration of [Assetic][1] and the the different filters
-it uses to preform it's tasks.
+The module is only an integration of [Assetic][1] and the different filters it
+uses to preform it's tasks.
 
 ## Installation
 1. Copy the 'AssetManagement' folder in the 'src' directory to the vendors
