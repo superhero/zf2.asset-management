@@ -1,3 +1,11 @@
-<?=
-  $this->asset()->dump( 
-    $this->asset()->decodeAssets( $this->assets ) );
+<?php
+
+$map   = $this->asset()->decodeAssets( $this->assets );
+$dump  = $this->asset()->dump( $map );
+
+$finfo = finfo_open();
+$mime  = finfo_buffer( $finfo, $dump, FILEINFO_MIME );
+finfo_close( $finfo );
+
+header( 'Content-Type: ' . $mime );
+echo $dump;
