@@ -1,5 +1,5 @@
 # Asset Management
-*PHP - Zend Framework 2 - Module*
+*PHP - Zend Framework 2 - Module*<br>
 <i>Version: <b>Alpha</b></i>
 
 ## What's this?
@@ -28,7 +28,7 @@ folder of your project
 2. Get [Assatic][1] and tell your autoloader about the namespace and where it
 can be found. <i><b>Tip:</b> Have a look at the 'Module' class where the
 Reference has been made but out commented</i>
-3. Get external filters that you wish to use.
+3. Get external filters that you wish to use.<br>
 *@todo -> List of links..*
 
 ## Usage
