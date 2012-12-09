@@ -371,7 +371,7 @@ class Asset extends AbstractHelper
   {
     $assets = urldecode( $assets );
     $assets = base64_decode( $assets );
-    $assets = gzinflate( $assets );
+    $assets = @gzinflate( $assets );
     $assets = json_decode( $assets, true );
 
     return $assets;

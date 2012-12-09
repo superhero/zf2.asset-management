@@ -3,6 +3,9 @@
 $map   = $this->asset()->decodeAssets( $this->assets );
 $dump  = $this->asset()->dump( $map );
 
+if( empty( $dump ) )
+  throw new Exception( 'Invalid asset' );
+
 $finfo = finfo_open();
 $mime  = finfo_buffer( $finfo, $dump, FILEINFO_MIME );
 finfo_close( $finfo );
