@@ -6,7 +6,7 @@ return
       [ 'asset' =>
         [ 'type'    => 'segment',
           'options' =>
-          [ 'route'     => '/asset[/:assets]/',
+          [ 'route'     => '/asset/[:assets]/',
             'defaults'  =>
             [ 'controller' => 'AssetManagement\Index',
               'action'     => 'index',
@@ -30,12 +30,7 @@ return
     'asset_management' =>
     [ 'debug' => false,
       'filter_map' =>
-      [ /*[ 'alias' => 'css_embed',
-          'class' => '\Assetic\Filter\CssEmbedFilter' ],
-          'param' => 'something'
-       */
-
-        [ 'alias' => 'css_import',
+      [ [ 'alias' => 'css_import',
           'class' => '\Assetic\Filter\CssImportFilter' ],
 
         [ 'alias' => 'css_min',
