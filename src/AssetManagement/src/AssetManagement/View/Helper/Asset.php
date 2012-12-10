@@ -9,27 +9,34 @@ use Assetic\AssetManager,
     Zend\ServiceManager\ServiceLocatorInterface,
     Zend\View\Helper\AbstractHelper;
 
+/**
+ * This is a view helper that acts as a facade for assetic.The vision is to
+ * keep it easy and clean to use..
+ */
 class Asset extends AbstractHelper
          implements ServiceLocatorAwareInterface
 {
-  protected $assetFactory,
-            $assetManager,
-            $assets,
-            $config,
-            $debug,
-            $factory,
-            $filterManager,
-            $paths,
-            $serviceLocator;
+  private $assetFactory,
+          $assetManager,
+          $assets,
+          $config,
+          $debug,
+          $filterManager,
+          $paths,
+          $serviceLocator;
 
   /**
-   * @return ServiceLocatorInterface
+   * @return \Zend\ServiceManager\ServiceLocatorInterface
    */
   public function getServiceLocator()
   {
     return $this->serviceLocator;
   }
 
+  /**
+   * @param \Zend\ServiceManager\ServiceLocatorInterface $serviceLocator
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function setServiceLocator( ServiceLocatorInterface $serviceLocator )
   {
     $this->serviceLocator = $serviceLocator;
@@ -37,11 +44,19 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @param array $paths
+   */
   protected function setPaths( array $paths )
   {
     $this->paths = $paths;
   }
 
+  /**
+   * @param strimg $alias
+   * @param string $path
+   * @return \AssetManagement\View\Helper\Asset
+   */
   protected function addPath( $alias, $path )
   {
     $paths = array_merge( $this->getPaths(), [ $alias => $path ] );
@@ -50,6 +65,10 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @param array $paths [ $alias => $path ]
+   * @return \AssetManagement\View\Helper\Asset
+   */
   protected function addPaths( array $paths )
   {
     foreach( $paths as $alias => $path )
@@ -58,6 +77,12 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * Retrives the whitelisted path connected to the given alias
+   *
+   * @param string $alias
+   * @return string
+   */
   protected function getPath( $alias )
   {
     $paths = $this->getPaths();
@@ -67,6 +92,11 @@ class Asset extends AbstractHelper
       : '';
   }
 
+  /**
+   * Retrives the configuration for the 'asset_management' namespace
+   *
+   * @return array
+   */
   protected function getConfig()
   {
     if( !isset( $this->config ) )
@@ -80,6 +110,11 @@ class Asset extends AbstractHelper
     return $this->config;
   }
 
+  /**
+   * Lazyloads all whitelisted paths from the configuration and returns them
+   *
+   * @return array
+   */
   protected function getPaths()
   {
     if( !isset( $this->paths ) )
@@ -96,6 +131,10 @@ class Asset extends AbstractHelper
     return $this->paths;
   }
 
+  /**
+   * @param string $alias
+   * @return \AssetManagement\View\Helper\Asset
+   */
   protected function removePath( $alias )
   {
     unset( $this->paths[ $alias ] );
@@ -103,6 +142,9 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @return \AssetManagement\View\Helper\Asset
+   */
   protected function clearPaths()
   {
     $this->paths = [];
@@ -114,7 +156,7 @@ class Asset extends AbstractHelper
    * Output ref map
    * [ 'paths'   ]
    * [ 'filters' ]
-   * 1.'options' ]
+   * [.'options' ]
    *
    * @return array
    */
@@ -139,7 +181,7 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * Will return all feeded assets
+   * Will return all feeded assets in one string
    *
    * @param array $asset
    * @return string
@@ -161,7 +203,9 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * @return AssetFactory
+   * Lazyloads a populated instance of Assetics AssetFactory
+   *
+   * @return \Assetic\Factory\AssetFactory
    */
   public function getAssetFactory()
   {
@@ -177,7 +221,9 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * @return AssetManager
+   * Lazyloads Assetics AssetManager
+   *
+   * @return \Assetic\AssetManager
    */
   public function getAssetManager()
   {
@@ -188,7 +234,10 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * @return FilterManager
+   * Lazyloads Assetics FilterManager and populates it with all the filters
+   * defined in the configurations
+   *
+   * @return \Assetic\FilterManager
    */
   public function getFilterManager()
   {
@@ -209,6 +258,11 @@ class Asset extends AbstractHelper
     return $this->filterManager;
   }
 
+  /**
+   * Lazyloads from config and returns if we are in debug mode or not
+   *
+   * @return boolean
+   */
   public function isDebug()
   {
     if( !isset( $this->debug ) )
@@ -220,6 +274,9 @@ class Asset extends AbstractHelper
     return $this->debug;
   }
 
+  /**
+   * @return array
+   */
   protected function getAssets()
   {
     if( !isset( $this->assets ) )
@@ -228,6 +285,10 @@ class Asset extends AbstractHelper
     return $this->assets;
   }
 
+  /**
+   * @param array $assets
+   * @return \AssetManagement\View\Helper\Asset
+   */
   protected function setAssets( array $assets )
   {
     $this->assets = $assets;
@@ -235,6 +296,9 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function clear()
   {
     $this->assets = [ 'filters' => [],
@@ -243,6 +307,13 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * Appends an asset to the asset stack
+   *
+   * @param string $alias
+   * @param string $path
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function append( $alias, $path )
   {
     $assets = $this->getAssets();
@@ -256,6 +327,13 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * Prepends an asset to the asset stack
+   *
+   * @param string $alias
+   * @param string $path
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function prepend( $alias, $path )
   {
     $assets = $this->getAssets();
@@ -269,6 +347,9 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @return array
+   */
   public function getFilters()
   {
     $assets = $this->getAssets();
@@ -276,6 +357,10 @@ class Asset extends AbstractHelper
     return $assets[ 'filters' ];
   }
 
+  /**
+   * @param array $filters
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function setFilters( array $filters )
   {
     if( !isset( $this->assets ) || !isset( $this->assets[ 'filters' ] ) )
@@ -315,6 +400,9 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * @return \AssetManagement\View\Helper\Asset
+   */
   public function clearFilters()
   {
     $this->setFilters( [] );
@@ -322,7 +410,16 @@ class Asset extends AbstractHelper
     return $this;
   }
 
-  public function __invoke( $alias = null, $path = null, $filters = null )
+  /**
+   * If $alias and $path parameters are entered the append method is used
+   * If the $filters parameter is entered the method setFilters is used
+   *
+   * @param string $alias
+   * @param string $path
+   * @param array $filters
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  public function __invoke( $alias = null, $path = null, array $filters = null )
   {
     if( !is_null( $alias ) && !is_null( $path ) )
       $this->append( $alias, $path, $filters );
@@ -333,6 +430,12 @@ class Asset extends AbstractHelper
     return $this;
   }
 
+  /**
+   * When the object is called upon as a string then it will dump as a link and
+   * reset the asset stack
+   *
+   * @return string
+   */
   public function __toString()
   {
     $par = $this->encodeAssets( $this->getAssets() );

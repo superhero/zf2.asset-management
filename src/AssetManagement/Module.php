@@ -8,11 +8,21 @@ use Zend\ModuleManager\Feature\AutoloaderProviderInterface,
 class Module implements AutoloaderProviderInterface,
                         ConfigProviderInterface
 {
+  /**
+   * Returns the modules configurations
+   *
+   * @return array
+   */
   public function getConfig()
   {
     return include __DIR__ . '/config/module.php';
   }
 
+  /**
+   * Returns configurations for the autoloader
+   *
+   * @return array
+   */
   public function getAutoloaderConfig()
   {
     return
