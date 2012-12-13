@@ -207,7 +207,7 @@ class Asset extends AbstractHelper
    *
    * @return \Assetic\Factory\AssetFactory
    */
-  public function getAssetFactory()
+  protected function getAssetFactory()
   {
     if( !isset( $this->assetFactory ) )
     {
@@ -225,7 +225,7 @@ class Asset extends AbstractHelper
    *
    * @return \Assetic\AssetManager
    */
-  public function getAssetManager()
+  protected function getAssetManager()
   {
     if( !isset( $this->assetManager ) )
       $this->assetManager = new AssetManager();
@@ -237,9 +237,11 @@ class Asset extends AbstractHelper
    * Lazyloads Assetics FilterManager and populates it with all the filters
    * defined in the configurations
    *
+   * @todo This will load all filters even if they are not used...
+   *
    * @return \Assetic\FilterManager
    */
-  public function getFilterManager()
+  protected function getFilterManager()
   {
     if( !isset( $this->filterManager ) )
     {
@@ -263,7 +265,7 @@ class Asset extends AbstractHelper
    *
    * @return boolean
    */
-  public function isDebug()
+  protected function isDebug()
   {
     if( !isset( $this->debug ) )
     {
@@ -350,7 +352,7 @@ class Asset extends AbstractHelper
   /**
    * @return array
    */
-  public function getFilters()
+  protected function getFilters()
   {
     $assets = $this->getAssets();
 
@@ -361,7 +363,7 @@ class Asset extends AbstractHelper
    * @param array $filters
    * @return \AssetManagement\View\Helper\Asset
    */
-  public function setFilters( array $filters )
+  protected function setFilters( array $filters )
   {
     if( !isset( $this->assets ) || !isset( $this->assets[ 'filters' ] ) )
       $this->clear();
