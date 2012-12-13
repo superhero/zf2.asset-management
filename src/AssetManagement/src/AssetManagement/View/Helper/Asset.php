@@ -19,6 +19,7 @@ class Asset extends AbstractHelper
   private $assetFactory,
           $assetManager,
           $assets,
+          $filters,
           $config,
           $debug,
           $filterManager,
@@ -153,51 +154,53 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * Output ref map
-   * [ 'paths'   ]
-   * [ 'filters' ]
-   * [.'options' ]
-   *
-   * @return array
+   * @param array &$roots will return all whitelisted folders relative to the
+   * returning paths
+   * @return type
    */
-  protected function getCompleteData()
+  protected function getAbsolutePaths( &$roots )
   {
-    $assets = $this->getAssets();
-    $assets[ 'options' ] = [];
-    $assets[ 'options' ][ 'root' ] = [];
+    $paths = [];
+    $roots = [];
 
-    foreach( $assets[ 'paths' ] as $key => &$path )
+    foreach( $this->getAssets() as $asset )
     {
-      $public   = $this->getPath( $path[ 0 ] );
-      $public   = realpath( $public );
-      $relative = $path[ 1 ];
-      $path     = $public . DIRECTORY_SEPARATOR . $relative;
+      $alias  = $asset[ 0 ];
+      $path   = $asset[ 1 ];
 
-      if( !in_array( $public, $assets[ 'options' ][ 'root' ] ) )
-        array_push( $assets[ 'options' ][ 'root' ], $public );
+      $public = $this->getPath( $alias );
+      $public = realpath( $public );
+      $path   = $public . DIRECTORY_SEPARATOR . $path;
+
+      array_push( $paths, $path );
+      array_push( $roots, $public );
     }
 
-    return $assets;
+    $paths = array_unique( $paths );
+    $roots = array_unique( $roots );
+
+    return $paths;
   }
 
   /**
    * Will return all feeded assets in one string
    *
-   * @param array $asset
+   * @param boolean $reset If true then the method will reset the asset and
+   * filter stacks.
    * @return string
    */
-  public function dump( array $asset = null )
+  public function dump( $reset = true )
   {
-    if( !is_null( $asset ) )
-      $this->setAssets( $asset );
+    $paths   = $this->getAbsolutePaths( $roots );
+    $options = [ 'root' => $roots ];
+    $filters = $this->getFilters();
+    $assets  = $this->getAssetFactory()->createAsset(
+      $paths,
+      $filters,
+      $options );
 
-    $assets = $this->getCompleteData();
-    $assets = $this->getAssetFactory()->createAsset(
-      $assets[ 'paths' ],
-      $assets[ 'filters' ],
-      $assets[ 'options' ] );
-
-    $this->clear();
+    if( $reset )
+      $this->clear();
 
     return $assets->dump();
   }
@@ -282,7 +285,7 @@ class Asset extends AbstractHelper
   protected function getAssets()
   {
     if( !isset( $this->assets ) )
-      $this->clear();
+      $this->clearAssets();
 
     return $this->assets;
   }
@@ -301,10 +304,25 @@ class Asset extends AbstractHelper
   /**
    * @return \AssetManagement\View\Helper\Asset
    */
-  public function clear()
+  protected function clearAssets()
   {
-    $this->assets = [ 'filters' => [],
-                      'paths'   => [] ];
+    $this->setAssets( [] );
+
+    return $this;
+  }
+
+  /**
+   * @param boolean $assets If true, asset stack will be reseted
+   * @param boolean $filters If true, filter stack will be reseted
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  public function clear( $assets = true, $filters = true )
+  {
+    if( $assets )
+      $this->clearAssets();
+
+    if( $filters )
+      $this->clearFilters();
 
     return $this;
   }
@@ -321,7 +339,7 @@ class Asset extends AbstractHelper
     $assets = $this->getAssets();
 
     array_push(
-      $assets[ 'paths' ],
+      $assets,
       [ $alias, $path ] );
 
     $this->setAssets( $assets );
@@ -341,7 +359,7 @@ class Asset extends AbstractHelper
     $assets = $this->getAssets();
 
     array_unshift(
-      $assets[ 'paths' ],
+      $assets,
       [ $alias, $path ] );
 
     $this->setAssets( $assets );
@@ -354,9 +372,10 @@ class Asset extends AbstractHelper
    */
   protected function getFilters()
   {
-    $assets = $this->getAssets();
+    if( !isset( $this->filters ) )
+      $this->filters = [];
 
-    return $assets[ 'filters' ];
+    return $this->filters;
   }
 
   /**
@@ -365,10 +384,7 @@ class Asset extends AbstractHelper
    */
   protected function setFilters( array $filters )
   {
-    if( !isset( $this->assets ) || !isset( $this->assets[ 'filters' ] ) )
-      $this->clear();
-
-    $this->assets[ 'filters' ] = $filters;
+    $this->filters = $filters;
 
     return $this;
   }
@@ -405,7 +421,7 @@ class Asset extends AbstractHelper
   /**
    * @return \AssetManagement\View\Helper\Asset
    */
-  public function clearFilters()
+  protected function clearFilters()
   {
     $this->setFilters( [] );
 
@@ -440,11 +456,11 @@ class Asset extends AbstractHelper
    */
   public function __toString()
   {
-    $par = $this->encodeAssets( $this->getAssets() );
-    $hlp = $this->getServiceLocator()->get( 'url' );
-    $url = $hlp( 'asset', [ 'assets' => $par ] );
+    $param = $this->encode();
+    $hlper = $this->getServiceLocator()->get( 'url' );
+    $url   = $hlper( 'asset', [ 'assets' => $param ] );
 
-    $this->clear();
+    $this->clearAssets();
 
     return $url;
   }
@@ -452,33 +468,46 @@ class Asset extends AbstractHelper
   /**
    * Encode the containing assets to a url friendly string
    *
-   * @param array $assets
    * @return string
    */
-  public function encodeAssets( array $assets )
+  public function encode()
   {
-    $assets = json_encode( $assets );
-    $assets = gzdeflate( $assets, 9 );
-    $assets = base64_encode( $assets );
-    $assets = urlencode( $assets );
+    $filt = $this->getFilters();
+    $path = $this->getAssets();
 
-    return $assets;
+    $data = [ $filt, $path ];
+
+    $data = json_encode( $data );
+    $data = gzdeflate( $data, 9 );
+    $data = base64_encode( $data );
+    $data = urlencode( $data );
+
+    return $data;
   }
 
   /**
    * Mirror function for 'this->encodeAssets'
    *
-   * @param string $assets
-   * @return array
-   * @see encodeAssets()
+   * @param string $data
+   * @return \AssetManagement\View\Helper\Asset
+   * @see encode()
    */
-  public function decodeAssets( $assets )
+  public function decode( $data )
   {
-    $assets = urldecode( $assets );
-    $assets = base64_decode( $assets );
-    $assets = @gzinflate( $assets );
-    $assets = json_decode( $assets, true );
+    $data = urldecode( $data );
+    $data = base64_decode( $data );
+    $data = @gzinflate( $data );
+    $data = json_decode( $data, true );
 
-    return $assets;
+    if( empty( $data ) )
+      return $this;
+
+    $filt = $data[ 0 ];
+    $path = $data[ 1 ];
+
+    $this->setFilters( $filt );
+    $this->setAssets( $path );
+
+    return $this;
   }
 }

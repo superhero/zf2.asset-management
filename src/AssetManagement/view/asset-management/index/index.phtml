@@ -1,10 +1,10 @@
 <?php
 
-// Decodes the assets parameter and dumps the assets data
-$map  = $this->asset()->decodeAssets( $this->assets );
-$dump = $this->asset()->dump( $map );
+// Decodes the assets parameter and dumps the data
+$dump = $this->asset()->decode( $this->assets )->dump();
 
 // If nothing is dumped an exception is thrown
+// @todo Generate a 404 page instead
 if( empty( $dump ) )
   throw new Exception( 'Invalid asset' );
 
