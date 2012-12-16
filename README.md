@@ -1,7 +1,7 @@
 # Asset Management
 *PHP - Zend Framework 2 - Module*
 
-Version: **Alpha**
+Version: **Beta**
 
 ## What's this?
 This is an asset management module for zf2 that allows other modules to specify
@@ -20,19 +20,18 @@ include references.
 Yes, you can also combine multiple files into one single output.
 
 ## How it works
-The module is only an integration of [Assetic][1] and the different filters it
-uses to preform it's tasks.
+Behind the scenes the module uses the [Assetic][1] library.
+**More information will follow in RC..**
 
 ## Installation
 1. Copy the 'AssetManagement' folder in the 'src' directory to the vendors
 folder of your project
-2. Get [Assetic][1] and tell your autoloader about the namespace and where it
-can be found. <i><b>Tip:</b> Have a look at the 'Module' class where the
-Reference has been made but out commented</i>
+2. Integrate the [Assetic][1] library in your application
 3. Get external filters that you wish to use.<br>
-**List of links will follow..**
+**List of links will follow in RC..**
+4. Activate the module in the config file
 
 ## Usage
-**Description will follow when project reaches RC.**
+**Description will follow in RC..**
 
 [1]: https://github.com/kriswallsmith/assetic

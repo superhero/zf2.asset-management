@@ -31,7 +31,6 @@ class Module implements AutoloaderProviderInterface,
 
         'Zend\Loader\StandardAutoloader' =>
         [ 'namespaces' =>
-          [ // 'Assetic'     => __DIR__ . '/src/Assetic',
-            __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__ ] ] ];
+          [ __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__ ] ] ];
   }
 }
