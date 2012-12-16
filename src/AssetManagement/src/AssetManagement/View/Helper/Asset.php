@@ -25,6 +25,8 @@ class Asset extends AbstractHelper
           $paths,
           $serviceLocator;
 
+  private static $container;
+
   /**
    * @return \Zend\ServiceManager\ServiceLocatorInterface
    */
@@ -59,7 +61,8 @@ class Asset extends AbstractHelper
    */
   protected function addPath( $alias, $path )
   {
-    $paths = array_merge( $this->getPaths(), [ $alias => $path ] );
+    $paths = $this->getPaths();
+    $paths = array_merge( $paths, [ $alias => $path ] );
     $this->setPaths( $paths );
 
     return $this;
@@ -213,10 +216,14 @@ class Asset extends AbstractHelper
   {
     if( !isset( $this->assetFactory ) )
     {
+      $assetManager   = $this->getAssetManager();
+      $filterManager  = $this->getFilterManager();
+      $debug          = $this->isDebug();
+
       $this->assetFactory = new AssetFactory( '' );
-      $this->assetFactory->setAssetManager( $this->getAssetManager() );
-      $this->assetFactory->setFilterManager( $this->getFilterManager() );
-      $this->assetFactory->setDebug( $this->isDebug() );
+      $this->assetFactory->setAssetManager( $assetManager );
+      $this->assetFactory->setFilterManager( $filterManager );
+      $this->assetFactory->setDebug( $debug );
     }
 
     return $this->assetFactory;
@@ -533,5 +540,111 @@ class Asset extends AbstractHelper
     $this->setAssets( $path );
 
     return $this;
+  }
+
+  /**
+   * @return array
+   */
+  protected function getContainer()
+  {
+    if( !isset( self::$container ) )
+      $this->clearContainer();
+
+    return self::$container;
+  }
+
+  /**
+   * @param array $container
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  protected function setContainer( array $container )
+  {
+    self::$container = $container;
+
+    return $this;
+  }
+
+  /**
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  protected function clearContainer()
+  {
+    $this->setContainer( [] );
+
+    return $this;
+  }
+
+  /**
+   * Returns a list of current availible namespaces
+   *
+   * @return array
+   */
+  public function getNamespaces()
+  {
+    $container  = $this->getContainer();
+    $namespaces = array_keys( $container );
+
+    return $namespaces;
+  }
+
+  /**
+   * @param string $ns The namespace to work in
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  public function ns( $ns )
+  {
+    $container = $this->getContainer();
+
+    if( !isset( $container[ $ns ] ) )
+    {
+      $container[ $ns ] = $this->factory();
+      $this->setContainer( $container );
+    }
+
+    return $container[ $ns ];
+  }
+
+  /**
+   * Used for presenting a link to only one asset without worring about other
+   * assets in the stack
+   *
+   * @param string $alias
+   * @param string $path
+   * @return string
+   */
+  public function single( $alias, $path )
+  {
+    $self = $this->factory()->append( $alias, $path );
+
+    return ( string ) $self;
+  }
+
+  /**
+   * Factors a new instance with injected dependencies
+   *
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  protected function factory()
+  {
+    $view    = $this->getView();
+    $locator = $this->getServiceLocator();
+
+    $self = new self();
+    $self
+      ->setView( $view )
+      ->setServiceLocator( $locator );
+
+    return $self;
+  }
+
+  /**
+   * @param string $ns The namespace to work in
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  public function __get( $ns )
+  {
+    $helper = $this->ns( $ns );
+
+    return $helper;
   }
 }
