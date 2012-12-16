@@ -10,8 +10,7 @@ use Assetic\AssetManager,
     Zend\View\Helper\AbstractHelper;
 
 /**
- * This is a view helper that acts as a facade for assetic.The vision is to
- * keep it easy and clean to use..
+ * This is the resolver class for the public asset helper
  */
 class Asset extends AbstractHelper
          implements ServiceLocatorAwareInterface
@@ -264,16 +263,16 @@ class Asset extends AbstractHelper
   }
 
   /**
-   * Lazyloads from config and returns if we are in debug mode or not
+   * Lazyloads from config and returns true if we are in debug mode
    *
    * @return boolean
    */
-  protected function isDebug()
+  public function isDebug()
   {
     if( !isset( $this->debug ) )
     {
       $config = $this->getConfig();
-      $this->debug = $config[ 'debug' ];
+      $this->debug = ( boolean ) $config[ 'debug' ];
     }
 
     return $this->debug;
@@ -282,7 +281,7 @@ class Asset extends AbstractHelper
   /**
    * @return array
    */
-  protected function getAssets()
+  public function getAssets()
   {
     if( !isset( $this->assets ) )
       $this->clearAssets();
@@ -294,7 +293,7 @@ class Asset extends AbstractHelper
    * @param array $assets
    * @return \AssetManagement\View\Helper\Asset
    */
-  protected function setAssets( array $assets )
+  public function setAssets( array $assets )
   {
     $this->assets = $assets;
 
@@ -304,7 +303,7 @@ class Asset extends AbstractHelper
   /**
    * @return \AssetManagement\View\Helper\Asset
    */
-  protected function clearAssets()
+  public function clearAssets()
   {
     $this->setAssets( [] );
 
@@ -337,10 +336,9 @@ class Asset extends AbstractHelper
   public function append( $alias, $path )
   {
     $assets = $this->getAssets();
+    $asset  = [ ( string ) $alias, ( string ) $path ];
 
-    array_push(
-      $assets,
-      [ $alias, $path ] );
+    array_push( $assets, $asset );
 
     $this->setAssets( $assets );
 
@@ -357,10 +355,28 @@ class Asset extends AbstractHelper
   public function prepend( $alias, $path )
   {
     $assets = $this->getAssets();
+    $asset  = [ ( string ) $alias, ( string ) $path ];
 
-    array_unshift(
-      $assets,
-      [ $alias, $path ] );
+    array_unshift( $assets, $asset );
+
+    $this->setAssets( $assets );
+
+    return $this;
+  }
+
+  /**
+   * Removes matching combination from the asset stack
+   *
+   * @param string $alias
+   * @param string $path
+   * @return \AssetManagement\View\Helper\Asset\Resolver
+   */
+  public function remove( $alias, $path )
+  {
+    $assets = $this->getAssets();
+    $asset  = [ [ ( string ) $alias, ( string ) $path ] ];
+
+    $assets = array_diff( $assets, $asset );
 
     $this->setAssets( $assets );
 
@@ -370,7 +386,7 @@ class Asset extends AbstractHelper
   /**
    * @return array
    */
-  protected function getFilters()
+  public function getFilters()
   {
     if( !isset( $this->filters ) )
       $this->filters = [];
@@ -382,7 +398,7 @@ class Asset extends AbstractHelper
    * @param array $filters
    * @return \AssetManagement\View\Helper\Asset
    */
-  protected function setFilters( array $filters )
+  public function setFilters( array $filters )
   {
     $this->filters = $filters;
 
@@ -398,7 +414,7 @@ class Asset extends AbstractHelper
   public function filter( $filter )
   {
     $filters = $this->getFilters();
-    array_push( $filters, $filter );
+    array_push( $filters, ( string ) $filter );
     $this->setFilters( $filters );
 
     return $this;
@@ -421,7 +437,7 @@ class Asset extends AbstractHelper
   /**
    * @return \AssetManagement\View\Helper\Asset
    */
-  protected function clearFilters()
+  public function clearFilters()
   {
     $this->setFilters( [] );
 
@@ -434,18 +450,28 @@ class Asset extends AbstractHelper
    *
    * @param string $alias
    * @param string $path
-   * @param array $filters
    * @return \AssetManagement\View\Helper\Asset
    */
-  public function __invoke( $alias = null, $path = null, array $filters = null )
+  public function __invoke( $alias = null, $path = null )
   {
     if( !is_null( $alias ) && !is_null( $path ) )
-      $this->append( $alias, $path, $filters );
-
-    if( !is_null( $filters ) )
-      $this->setFilters( $filters );
+      $this->append( $alias, $path );
 
     return $this;
+  }
+
+  /**
+   * Returns the link where the asset will be dumped
+   *
+   * @return string
+   */
+  public function getUrl()
+  {
+    $param = $this->encode();
+    $hlper = $this->getServiceLocator()->get( 'url' );
+    $url   = $hlper( 'asset', [ 'assets' => $param ] );
+
+    return $url;;
   }
 
   /**
@@ -456,11 +482,9 @@ class Asset extends AbstractHelper
    */
   public function __toString()
   {
-    $param = $this->encode();
-    $hlper = $this->getServiceLocator()->get( 'url' );
-    $url   = $hlper( 'asset', [ 'assets' => $param ] );
+    $url = $this->getUrl();
 
-    $this->clearAssets();
+    $this->clear();
 
     return $url;
   }
