@@ -15,17 +15,19 @@ use Assetic\AssetManager,
 class Asset extends AbstractHelper
          implements ServiceLocatorAwareInterface
 {
-  private $assetFactory,
-          $assetManager,
-          $assets,
-          $filters,
-          $config,
-          $debug,
-          $filterManager,
-          $paths,
-          $serviceLocator;
+  private
+    $assetFactory,
+    $assetManager,
+    $assets,
+    $filters,
+    $config,
+    $debug,
+    $paths,
+    $serviceLocator;
 
-  private static $container;
+  private static
+    $container,
+    $filterManager;
 
   /**
    * @return \Zend\ServiceManager\ServiceLocatorInterface
@@ -185,6 +187,41 @@ class Asset extends AbstractHelper
   }
 
   /**
+   * Bootstraps the filter process
+   *
+   * @todo Good for now, but this problably have to hapen in a diffrent way
+   * ones we allow asset specific filters
+   *
+   * @return \AssetManagement\View\Helper\Asset
+   */
+  protected function bootstrapFilterManager()
+  {
+    $config = $this->getConfig();
+
+    if( !isset( $config[ 'filter_map' ] ) )
+      return;
+
+    $filters = $this->getFilters();
+    $map     = $config[ 'filter_map' ];
+    $manager = $this->getFilterManager();
+
+    foreach( $filters as $alias )
+      if( isset( $map[ $alias ] ) )
+        if( !$manager->has( $alias ) )
+        {
+          $filter = ( object ) $map[ $alias ];
+
+          $manager->set(
+            $alias,
+            isset( $filter->param )
+             ? new $filter->class( $filter->param )
+             : new $filter->class() );
+        }
+
+    return $this;
+  }
+
+  /**
    * Will return all feeded assets in one string
    *
    * @param boolean $reset If true then the method will reset the asset and
@@ -193,6 +230,8 @@ class Asset extends AbstractHelper
    */
   public function dump( $reset = true )
   {
+    $this->bootstrapFilterManager();
+
     $paths   = $this->getAbsolutePaths( $roots );
     $options = [ 'root' => $roots ];
     $filters = $this->getFilters();
@@ -252,21 +291,10 @@ class Asset extends AbstractHelper
    */
   protected function getFilterManager()
   {
-    if( !isset( $this->filterManager ) )
-    {
-      $this->filterManager = new FilterManager();
-      $config = $this->getConfig();
+    if( !isset( self::$filterManager ) )
+      self::$filterManager = new FilterManager();
 
-      if( isset( $config[ 'filter_map' ] ) )
-        foreach( $config[ 'filter_map' ] as $filter )
-          $this->filterManager->set(
-            $filter[ 'alias' ],
-            isset( $filter[ 'param' ] )
-            ? new $filter[ 'class' ]( $filter[ 'param' ] )
-            : new $filter[ 'class' ]() );
-    }
-
-    return $this->filterManager;
+    return self::$filterManager;
   }
 
   /**
@@ -396,7 +424,7 @@ class Asset extends AbstractHelper
   public function getFilters()
   {
     if( !isset( $this->filters ) )
-      $this->filters = [];
+      $this->clearFilters();
 
     return $this->filters;
   }
@@ -415,11 +443,16 @@ class Asset extends AbstractHelper
   /**
    * Appending a filter to the filters stack
    *
-   * @param string $filter
+   * @param string $filter the alias for the filter or the filters class name
+   * itself
+   * @param boolean $debug true will have filter running in debug mode
    * @return \AssetManagement\View\Helper\Asset
    */
-  public function filter( $filter )
+  public function filter( $filter, $debug = true )
   {
+    if( $debug )
+      $filter = '?' . $filter;
+
     $filters = $this->getFilters();
     array_push( $filters, ( string ) $filter );
     $this->setFilters( $filters );
@@ -436,7 +469,9 @@ class Asset extends AbstractHelper
   public function filters( array $filters )
   {
     foreach( $filters as $filter )
-      $this->filter( $filter );
+      ( is_array( $filter ) && count( $filter ) >= 2 )
+      ? $this->filter( $filter[ 0 ], $filter[ 1 ] )
+      : $this->filter( $filter );
 
     return $this;
   }
