@@ -206,17 +206,23 @@ class Asset extends AbstractHelper
     $manager = $this->getFilterManager();
 
     foreach( $filters as $alias )
-      if( isset( $map[ $alias ] ) )
-        if( !$manager->has( $alias ) )
+    {
+      $key = $alias[ 0 ] == '?'
+           ? substr( $alias, 1 )
+           : $alias;
+
+      if( isset( $map[ $key ] ) )
+        if( !$manager->has( $key ) )
         {
-          $filter = ( object ) $map[ $alias ];
+          $filter = ( object ) $map[ $key ];
 
           $manager->set(
-            $alias,
+            $key,
             isset( $filter->param )
              ? new $filter->class( $filter->param )
              : new $filter->class() );
         }
+    }
 
     return $this;
   }
@@ -235,6 +241,7 @@ class Asset extends AbstractHelper
     $paths   = $this->getAbsolutePaths( $roots );
     $options = [ 'root' => $roots ];
     $filters = $this->getFilters();
+
     $assets  = $this->getAssetFactory()->createAsset(
       $paths,
       $filters,
@@ -450,7 +457,7 @@ class Asset extends AbstractHelper
    */
   public function filter( $filter, $debug = true )
   {
-    if( $debug )
+    if( !$debug )
       $filter = '?' . $filter;
 
     $filters = $this->getFilters();
