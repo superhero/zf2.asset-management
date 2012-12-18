@@ -173,6 +173,10 @@ class Asset extends AbstractHelper
       $path   = $asset[ 1 ];
 
       $public = $this->getPath( $alias );
+
+      if( empty( $public ) )
+        continue;
+
       $public = realpath( $public );
       $path   = $public . DIRECTORY_SEPARATOR . $path;
 
