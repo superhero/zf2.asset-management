@@ -6,7 +6,7 @@ return
       [ 'asset' =>
         [ 'type'    => 'segment',
           'options' =>
-          [ 'route'     => '/asset/[:assets]/',
+          [ 'route'     => '/asset/[:assets]',
             'defaults'  =>
             [ 'controller' => 'AssetManagement\Index',
               'action'     => 'index',
@@ -28,13 +28,5 @@ return
       [ 'asset' => 'AssetManagement\View\Helper\Asset' ] ],
 
     'asset_management' =>
-    [ 'debug' => false,
-      'filter_map' =>
-      [ [ 'alias' => 'css_import',
-          'class' => '\Assetic\Filter\CssImportFilter' ],
-
-        [ 'alias' => 'css_min',
-          'class' => '\Assetic\Filter\CssMinFilter' ],
-
-        [ 'alias' => 'css_rewrite',
-          'class' => '\Assetic\Filter\CssRewriteFilter' ] ] ] ];
+    [ 'debug'      => false,
+      'filter_map' => [ ] ] ];
