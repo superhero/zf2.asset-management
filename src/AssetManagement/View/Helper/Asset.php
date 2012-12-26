@@ -180,6 +180,9 @@ class Asset extends AbstractHelper
       $public = realpath( $public );
       $path   = $public . DIRECTORY_SEPARATOR . $path;
 
+      if( !file_exists( $path ) )
+        continue;
+
       array_push( $paths, $path );
       array_push( $roots, $public );
     }
